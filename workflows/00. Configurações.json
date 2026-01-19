@@ -1,0 +1,583 @@
+{
+  "name": "00. Configurações",
+  "nodes": [
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "CREATE TABLE IF NOT EXISTS n8n_historico_mensagens (\n  id           BIGSERIAL PRIMARY KEY,\n  session_id   VARCHAR(40) NOT NULL,\n  message      JSONB NOT NULL,\n  created_at   TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP\n);\n\nCREATE INDEX IF NOT EXISTS idx_n8n_historico_mensagens_session_id ON n8n_historico_mensagens (session_id);\n\nCREATE TABLE IF NOT EXISTS n8n_fila_mensagens (\n  id           BIGSERIAL PRIMARY KEY,\n  id_mensagem  VARCHAR(40) NOT NULL,\n  telefone     VARCHAR(40) NOT NULL,\n  mensagem     TEXT NOT NULL,\n  \"timestamp\"  TIMESTAMP WITHOUT TIME ZONE NOT NULL\n);\n\nCREATE INDEX IF NOT EXISTS idx_n8n_fila_mensagens_telefone ON n8n_fila_mensagens (telefone);\n\nCREATE TABLE IF NOT EXISTS n8n_status_atendimento (\n  id                   BIGSERIAL PRIMARY KEY,\n  session_id           VARCHAR(40) NOT NULL UNIQUE,\n  lock_conversa        BOOLEAN NOT NULL DEFAULT FALSE,\n  aguardando_followup  BOOLEAN NOT NULL DEFAULT FALSE,\n  numero_followup      INTEGER NOT NULL DEFAULT 0,\n  updated_at           TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP\n);\n\nCREATE INDEX IF NOT EXISTS idx_n8n_status_atendimento_session_id ON n8n_status_atendimento (session_id);\nCREATE INDEX IF NOT EXISTS idx_n8n_status_atendimento_aguardando_followup ON n8n_status_atendimento (aguardando_followup);\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1024,
+        656
+      ],
+      "id": "3b2e8d73-2986-4bb6-a9da-84ed6bce36ea",
+      "name": "Criar tabelas"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "906c66c6-e855-4c24-ae15-cce828dafb92",
+              "name": "url_chatwoot",
+              "value": "<inserir url do seu chatwoot>",
+              "type": "string"
+            },
+            {
+              "id": "716d83b2-a693-489e-904e-79d77f33d621",
+              "name": "id_conta",
+              "value": "=1",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1040,
+        1056
+      ],
+      "id": "1c7218f1-002e-4a12-ab86-3fe4881349cf",
+      "name": "Info"
+    },
+    {
+      "parameters": {
+        "content": "## Configurar node Info!!",
+        "height": 240,
+        "width": 288,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        944,
+        976
+      ],
+      "typeVersion": 1,
+      "id": "90b76da3-5919-4aa9-953c-81eb335a66df",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Info').item.json.url_chatwoot }}/api/v1/accounts/{{ $('Info').item.json.id_conta }}/labels",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "chatwootApi",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "title",
+              "value": "testando-agente"
+            },
+            {
+              "name": "description",
+              "value": "Habilita o funcionamento da Secretária IA em modo de teste."
+            },
+            {
+              "name": "color",
+              "value": "#39EB08"
+            },
+            {
+              "name": "show_on_sidebar",
+              "value": "={{ true }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1312,
+        960
+      ],
+      "id": "98725010-9b72-4469-a1ce-bab995e7ea25",
+      "name": "Criar etiqueta testando-agente",
+      "alwaysOutputData": true,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Info').item.json.url_chatwoot }}/api/v1/accounts/{{ $('Info').item.json.id_conta }}/labels",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "chatwootApi",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "title",
+              "value": "agente-off"
+            },
+            {
+              "name": "description",
+              "value": "Desabilita o funcionamento da Secretária IA."
+            },
+            {
+              "name": "color",
+              "value": "#FF0000"
+            },
+            {
+              "name": "show_on_sidebar",
+              "value": "={{ true }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1504,
+        960
+      ],
+      "id": "e5eb53ad-d9f3-4a82-806b-3f9a06bfe648",
+      "name": "Criar etiqueta agente-off",
+      "alwaysOutputData": true,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Info').item.json.url_chatwoot }}/api/v1/accounts/{{ $('Info').item.json.id_conta }}/custom_attribute_definitions",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "chatwootApi",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "attribute_description",
+              "value": "Indica se o contato prefere comunicação via áudio ou texto."
+            },
+            {
+              "name": "attribute_display_name",
+              "value": "Preferência áudio/texto"
+            },
+            {
+              "name": "attribute_display_type",
+              "value": "={{ 6 }}"
+            },
+            {
+              "name": "attribute_key",
+              "value": "preferencia_audio_texto"
+            },
+            {
+              "name": "attribute_model",
+              "value": "={{ 1 }}"
+            },
+            {
+              "name": "attribute_values",
+              "value": "={{ \n[\"audio\", \"texto\"] }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1312,
+        1152
+      ],
+      "id": "5257a504-f01d-4ec0-9a6a-4df751d3ed53",
+      "name": "Cria atributo preferência áudio texto",
+      "alwaysOutputData": true,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Info').item.json.url_chatwoot }}/api/v1/accounts/{{ $('Info').item.json.id_conta }}/custom_attribute_definitions",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "chatwootApi",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "attribute_description",
+              "value": "ID do cliente no Asaas."
+            },
+            {
+              "name": "attribute_display_name",
+              "value": "ID cliente - Asaas"
+            },
+            {
+              "name": "attribute_display_type",
+              "value": "={{ 0 }}"
+            },
+            {
+              "name": "attribute_key",
+              "value": "asaas_id_cliente"
+            },
+            {
+              "name": "attribute_model",
+              "value": "={{ 1 }}"
+            },
+            {
+              "name": "attribute_values",
+              "value": "={{ \n[] }}"
+            },
+            {
+              "name": "regex_pattern",
+              "value": "/^cus_/"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1504,
+        1152
+      ],
+      "id": "160a3fa8-bb30-409d-b866-c238d0fb2c93",
+      "name": "Cria atributo Asaas ID cliente",
+      "alwaysOutputData": true,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Info').item.json.url_chatwoot }}/api/v1/accounts/{{ $('Info').item.json.id_conta }}/custom_attribute_definitions",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "chatwootApi",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "attribute_description",
+              "value": "ID da cobrança no Asaas."
+            },
+            {
+              "name": "attribute_display_name",
+              "value": "ID cobrança - Asaas"
+            },
+            {
+              "name": "attribute_display_type",
+              "value": "={{ 0 }}"
+            },
+            {
+              "name": "attribute_key",
+              "value": "asaas_id_cobranca"
+            },
+            {
+              "name": "attribute_model",
+              "value": "={{ 1 }}"
+            },
+            {
+              "name": "attribute_values",
+              "value": "={{ \n[] }}"
+            },
+            {
+              "name": "regex_pattern",
+              "value": "/^pay_/"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1696,
+        1152
+      ],
+      "id": "4ce32e83-04c0-430e-bb10-9f15e511e2b3",
+      "name": "Cria atributo Asaas ID cobrança",
+      "alwaysOutputData": true,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Info').item.json.url_chatwoot }}/api/v1/accounts/{{ $('Info').item.json.id_conta }}/custom_attribute_definitions",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "chatwootApi",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "attribute_description",
+              "value": "Status da cobrança no Asaas."
+            },
+            {
+              "name": "attribute_display_name",
+              "value": "Status cobrança - Asaas"
+            },
+            {
+              "name": "attribute_display_type",
+              "value": "={{ 6 }}"
+            },
+            {
+              "name": "attribute_key",
+              "value": "asaas_status_cobranca"
+            },
+            {
+              "name": "attribute_model",
+              "value": "={{ 1 }}"
+            },
+            {
+              "name": "attribute_values",
+              "value": "={{ [\n  \"Pendente\",\n  \"Cobrança recebida\",\n  \"Cobrança confirmada\",\n  \"Cobrança vencida\",\n  \"Cobrança estornada\",\n  \"Cobrança recebida em dinheiro\",\n  \"Solicitação de estorno\",\n  \"Estorno em andamento\",\n  \"Recebido chargeback\",\n  \"Em disputa de chargeback\",\n  \"Disputa vencida\",\n  \"Requisição de negativação\",\n  \"Recebimento de negativação\",\n  \"Aguardando análise de risco\"\n] }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1888,
+        1152
+      ],
+      "id": "06577c0b-c4c9-4679-bb6b-8f48fd09d240",
+      "name": "Cria atributo Asaas status cobrança",
+      "alwaysOutputData": true,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        640,
+        1056
+      ],
+      "id": "7cb8a69d-b8d2-44f7-ab05-67e7d569542b",
+      "name": "Rodar configuração"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Info').item.json.url_chatwoot }}/api/v1/accounts/{{ $('Info').item.json.id_conta }}/labels",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "chatwootApi",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "title",
+              "value": "gestor"
+            },
+            {
+              "name": "description",
+              "value": "Gestores com acesso ao assistente interno."
+            },
+            {
+              "name": "color",
+              "value": "#1D405B"
+            },
+            {
+              "name": "show_on_sidebar",
+              "value": "={{ true }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1696,
+        960
+      ],
+      "id": "8fb7797b-58b7-4d98-924d-01fae282d46d",
+      "name": "Criar etiqueta gestor",
+      "alwaysOutputData": true,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Info').item.json.url_chatwoot }}/api/v1/accounts/{{ $('Info').item.json.id_conta }}/custom_attribute_definitions",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "chatwootApi",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "attribute_description",
+              "value": "Usuário permitiu receber ligações pelo WhatsApp. **NÃO ALTERAR MANUALMENTE**"
+            },
+            {
+              "name": "attribute_display_name",
+              "value": "Permitir chamadas WhatsApp"
+            },
+            {
+              "name": "attribute_display_type",
+              "value": "=checkbox"
+            },
+            {
+              "name": "attribute_key",
+              "value": "permitir_chamadas_whatsapp"
+            },
+            {
+              "name": "attribute_model",
+              "value": "=contact_attribute"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2096,
+        1152
+      ],
+      "id": "f39bae9d-4749-4fa8-9ab5-4a84e7a13f41",
+      "name": "Cria atributo permitir chamadas",
+      "alwaysOutputData": true,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "content": "## Chatwoot",
+        "height": 448,
+        "width": 1360,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        912,
+        880
+      ],
+      "typeVersion": 1,
+      "id": "c60fde53-e8a5-4115-9479-652b0c6d5112",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "## Postgres",
+        "height": 304,
+        "width": 352,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        912,
+        560
+      ],
+      "typeVersion": 1,
+      "id": "8a8d5a92-fb86-4b98-bc1f-5a8edaac47f7",
+      "name": "Sticky Note3"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Info": {
+      "main": [
+        [
+          {
+            "node": "Criar etiqueta testando-agente",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Cria atributo preferência áudio texto",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Criar etiqueta testando-agente": {
+      "main": [
+        [
+          {
+            "node": "Criar etiqueta agente-off",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Criar etiqueta agente-off": {
+      "main": [
+        [
+          {
+            "node": "Criar etiqueta gestor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cria atributo preferência áudio texto": {
+      "main": [
+        [
+          {
+            "node": "Cria atributo Asaas ID cliente",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cria atributo Asaas ID cliente": {
+      "main": [
+        [
+          {
+            "node": "Cria atributo Asaas ID cobrança",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cria atributo Asaas ID cobrança": {
+      "main": [
+        [
+          {
+            "node": "Cria atributo Asaas status cobrança",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cria atributo Asaas status cobrança": {
+      "main": [
+        [
+          {
+            "node": "Cria atributo permitir chamadas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Rodar configuração": {
+      "main": [
+        [
+          {
+            "node": "Criar tabelas",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Info",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "fc87c6b4-1b42-4971-902f-923be90cca53",
+  "meta": {
+    "instanceId": "b1fb13baed416f15345287e567ccf53e6d135fda3c2d557b2cd7ae1767602388"
+  },
+  "id": "f2gCxSla1vsyQQXJ",
+  "tags": []
+}
