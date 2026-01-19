@@ -1,0 +1,410 @@
+{
+  "name": "04. Criar evento Google Calendar",
+  "nodes": [
+    {
+      "parameters": {
+        "calendar": {
+          "__rl": true,
+          "value": "={{ $('Gatilho').item.json.id_agenda }}",
+          "mode": "id"
+        },
+        "start": "={{ $('Gatilho').item.json.evento_inicio }}",
+        "end": "={{ $('Calcula fim do evento').item.json.evento_fim }}",
+        "additionalFields": {
+          "attendees": [],
+          "conferenceDataUi": {
+            "conferenceDataValues": {
+              "conferenceSolution": "hangoutsMeet"
+            }
+          },
+          "description": "={{ $('Gatilho').item.json.descricao }}",
+          "summary": "={{ $('Gatilho').item.json.titulo }}"
+        }
+      },
+      "type": "n8n-nodes-base.googleCalendar",
+      "typeVersion": 1.3,
+      "position": [
+        1632,
+        704
+      ],
+      "id": "40acf693-051e-4c4b-aed3-ca92e2a588aa",
+      "name": "Cria o evento"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "0423c482-5749-4c92-ba44-a33b281918a6",
+              "leftValue": "={{ $json }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1376,
+        800
+      ],
+      "id": "62f11647-bf48-4109-8ee2-8da57ccd45d9",
+      "name": "Janela disponível?"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "9a677f76-5e00-43f7-8f7d-6de17744391b",
+              "name": "erro",
+              "value": "HORÁRIO INDISPONÍVEL. VERIFICAR SE AGENDAMENTO JÁ NÃO FOI REALIZADO PARA ESSE CONTATO.",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1728,
+        928
+      ],
+      "id": "f6d0f17c-a6f4-48f3-8745-b71b6edfae68",
+      "name": "Retorna \"horário indisponível\""
+    },
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "evento_inicio"
+            },
+            {
+              "name": "duracao_minutos",
+              "type": "number"
+            },
+            {
+              "name": "titulo"
+            },
+            {
+              "name": "descricao"
+            },
+            {
+              "name": "id_agenda"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        752,
+        800
+      ],
+      "id": "1eed5555-64dc-4014-823b-788eddca960d",
+      "name": "Gatilho"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a94abf94-1a64-4995-b4f1-4644993b3ece",
+              "name": "evento_fim",
+              "value": "={{ $('Gatilho').item.json.evento_inicio.toDateTime().plus($('Gatilho').item.json.duracao_minutos, 'minutes').toString() }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        960,
+        800
+      ],
+      "id": "86cd6034-415f-4763-9558-4555355be654",
+      "name": "Calcula fim do evento"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "ZGnLV8lGj8wz8r2T",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/ZGnLV8lGj8wz8r2T",
+          "cachedResultName": "<selecionar ou criar subworkflow 03. Buscar janelas disponíveis Google Calendar>"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "tamanho_janela_minutos": "={{ $('Gatilho').item.json.duracao_minutos }}",
+            "periodo_inicio": "={{ $('Gatilho').item.json.evento_inicio }}",
+            "periodo_fim": "={{ $('Calcula fim do evento').item.json.evento_fim }}",
+            "id_agenda": "={{ $('Gatilho').item.json.id_agenda }}",
+            "amostras": 1
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "periodo_inicio",
+              "displayName": "periodo_inicio",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "periodo_fim",
+              "displayName": "periodo_fim",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "id_agenda",
+              "displayName": "id_agenda",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "tamanho_janela_minutos",
+              "displayName": "tamanho_janela_minutos",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "number",
+              "removed": false
+            },
+            {
+              "id": "granularidade",
+              "displayName": "granularidade",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "number",
+              "removed": true
+            },
+            {
+              "id": "amostras",
+              "displayName": "amostras",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "number",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        1168,
+        800
+      ],
+      "id": "7ad8777a-5de6-4f27-ba21-cd7a723ee7b8",
+      "name": "Buscar janelas disponíveis",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "content": "### Configurar subworkflow!",
+        "height": 256,
+        "width": 256,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1088,
+        720
+      ],
+      "typeVersion": 1,
+      "id": "ebdcfa8b-a4bb-42bc-8864-be2dfb84eb4a",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "## Buscar janelas",
+        "height": 432,
+        "width": 848,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        704,
+        640
+      ],
+      "typeVersion": 1,
+      "id": "3cbfcc01-779c-47b6-ba0f-30294d7840f4",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## Criar o evento",
+        "height": 208,
+        "width": 448,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1568,
+        640
+      ],
+      "typeVersion": 1,
+      "id": "f0f33a4c-5d40-4ca5-80bc-c488b228de04",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "## Horário indisponível",
+        "height": 208,
+        "width": 448,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1568,
+        864
+      ],
+      "typeVersion": 1,
+      "id": "a87ec5b2-641a-46ce-aa08-6c3cf788eef7",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "faa4a0a7-cdb9-4729-8a7e-27193513b89a",
+              "name": "resultado",
+              "value": "AGENDAMENTO CRIADO",
+              "type": "string"
+            },
+            {
+              "id": "e6ee1079-a033-4240-be55-f2fbfdcc94b2",
+              "name": "id_evento",
+              "value": "={{ $json.id }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1856,
+        704
+      ],
+      "id": "17dd5662-75d4-43d5-abcf-4d18a72a2b60",
+      "name": "Retorna evento criado"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Cria o evento": {
+      "main": [
+        [
+          {
+            "node": "Retorna evento criado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Janela disponível?": {
+      "main": [
+        [
+          {
+            "node": "Cria o evento",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Retorna \"horário indisponível\"",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gatilho": {
+      "main": [
+        [
+          {
+            "node": "Calcula fim do evento",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calcula fim do evento": {
+      "main": [
+        [
+          {
+            "node": "Buscar janelas disponíveis",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar janelas disponíveis": {
+      "main": [
+        [
+          {
+            "node": "Janela disponível?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "f7ffb270-bd2d-4255-8367-c8f74dbcb13f",
+  "meta": {
+    "instanceId": "b1fb13baed416f15345287e567ccf53e6d135fda3c2d557b2cd7ae1767602388"
+  },
+  "id": "6ReH7rHSoUt9A0KY",
+  "tags": []
+}

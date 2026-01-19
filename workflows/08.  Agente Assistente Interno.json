@@ -1,0 +1,969 @@
+{
+  "name": "08.  Agente Assistente Interno",
+  "nodes": [
+    {
+      "parameters": {
+        "operation": "getAll",
+        "limit": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Limit', ``, 'number') }}",
+        "filters": {}
+      },
+      "type": "n8n-nodes-base.gmailTool",
+      "typeVersion": 2.1,
+      "position": [
+        2560,
+        960
+      ],
+      "id": "fbfbfe5b-d08f-4a26-acff-19e2c6175ce5",
+      "name": "Ler emails",
+      "webhookId": "95dca36e-9f7d-4d83-a3ca-cfdae16b5b37"
+    },
+    {
+      "parameters": {
+        "task": "<selecionar lista de tarefas>",
+        "title": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Title', ``, 'string') }}",
+        "additionalFields": {
+          "dueDate": "={{ $fromAI('data_vencimento', `Deve ser uma data e horário no futuro. Datas passadas são inválidas. A data deve ser no formato: 'YYYY-MM-DDThh:mm:ssTZD'. Utilize o fuso horário conforme a data atual.`, 'string') }}",
+          "notes": "={{ $fromAI('notas', ``, 'string') }}",
+          "status": "needsAction"
+        }
+      },
+      "type": "n8n-nodes-base.googleTasksTool",
+      "typeVersion": 1,
+      "position": [
+        2704,
+        960
+      ],
+      "id": "05cb7997-c83d-4f79-a529-7b7f54c3fff4",
+      "name": "Criar tarefa"
+    },
+    {
+      "parameters": {
+        "resource": "audio",
+        "operation": "transcribe",
+        "options": {
+          "language": "pt"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        1760,
+        816
+      ],
+      "id": "9f61c05b-41b5-459e-9f8e-5aaff5a92e46",
+      "name": "Transcrever áudio"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "8ca54eae-15d1-49d3-af33-7a6e5d17b833",
+              "leftValue": "={{ $json.tipo }}",
+              "rightValue": "incoming",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            },
+            {
+              "id": "cf87bb7e-6bea-4697-bcd9-57e3b63998c2",
+              "leftValue": "={{ $json.etiquetas }}",
+              "rightValue": "gestor",
+              "operator": {
+                "type": "array",
+                "operation": "contains",
+                "rightType": "any"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.2,
+      "position": [
+        1168,
+        704
+      ],
+      "id": "455e66cb-6766-4999-a23c-3861d3900777",
+      "name": "Mensagem chegando?"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "b9a7e16f-b6e4-45d7-846d-92dcb3117593",
+                    "leftValue": "={{ $('Info').item.json.mensagem }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "notEmpty",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Texto"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $('Info').item.json.mensagem_de_audio }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    },
+                    "id": "1382cd26-d96e-4c55-99dd-2ca305ffe82e"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Áudio"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        1360,
+        704
+      ],
+      "id": "2479d608-da7f-41cc-90b0-773f97102fce",
+      "name": "Tipo de mensagem"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "40ff895f-f63f-4e4f-bba3-c7d803c277f1",
+              "name": "url_chatwoot",
+              "value": "<inserir url do seu chatwoot>",
+              "type": "string"
+            },
+            {
+              "id": "f828692e-025a-40aa-8d42-1c292bde3246",
+              "name": "url_asaas",
+              "value": "https://api-sandbox.asaas.com",
+              "type": "string"
+            },
+            {
+              "id": "c8fd010d-6096-4a50-b3e2-e9fe26661840",
+              "name": "id_mensagem",
+              "value": "={{ $json.body.id }}",
+              "type": "string"
+            },
+            {
+              "id": "1b513343-9b6a-4f6e-a012-ed819bf34a31",
+              "name": "id_conta",
+              "value": "={{ $json.body.account.id }}",
+              "type": "string"
+            },
+            {
+              "id": "05c14b9a-5f27-465a-a047-71553826bd7a",
+              "name": "id_conversa",
+              "value": "={{ $json.body.conversation.id }}",
+              "type": "string"
+            },
+            {
+              "id": "8bf522a6-75fb-434a-854c-b736539309e1",
+              "name": "telefone",
+              "value": "={{ $json.body.sender.phone_number }}",
+              "type": "string"
+            },
+            {
+              "id": "0d622a33-f313-4758-a764-fa6cbf2b0587",
+              "name": "mensagem",
+              "value": "={{ $json.body.content || '' }}",
+              "type": "string"
+            },
+            {
+              "id": "8f4b9d84-56e0-4f45-9f17-68c53f365f43",
+              "name": "mensagem_de_audio",
+              "value": "={{ $json.body.attachments?.[0]?.meta?.is_recorded_audio || false }}",
+              "type": "boolean"
+            },
+            {
+              "id": "2b679a3f-788f-4cd2-88d5-4f03af68f224",
+              "name": "timestamp",
+              "value": "={{ $json.body.created_at }}",
+              "type": "string"
+            },
+            {
+              "id": "24caf88e-74ce-43ab-8dc4-1fff471b706f",
+              "name": "tipo",
+              "value": "={{ $json.body.message_type }}",
+              "type": "string"
+            },
+            {
+              "id": "573669d2-1e43-4010-8c82-a67459ffe1db",
+              "name": "etiquetas",
+              "value": "={{ $json.body.conversation.labels }}",
+              "type": "array"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        928,
+        704
+      ],
+      "id": "18dfa546-0bb9-47d2-b7b6-0cffbbc5ccad",
+      "name": "Info"
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Mensagem recebida').item.json.body.attachments[0].data_url }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "chatwootApi",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1600,
+        816
+      ],
+      "id": "9a04ba02-eb53-4a75-9cbd-43b9e2d3943f",
+      "name": "Download áudio"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "0e95db55-1b2e-4762-a547-9481029291e9",
+              "name": "mensagem",
+              "value": "={{ $('Info').item.json.mensagem || $json.text || $json.content.parts?.[0].text || '<mensagem de áudio não audível>' }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2000,
+        704
+      ],
+      "id": "b99a1c6a-7b37-4e35-a24e-d39b3fa15249",
+      "name": "Set mensagem"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "assistente_interno",
+        "tableName": "n8n_historico_mensagens",
+        "contextWindowLength": 50
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryPostgresChat",
+      "typeVersion": 1.3,
+      "position": [
+        2352,
+        960
+      ],
+      "id": "203975f2-5dd2-4715-994d-94668b332d95",
+      "name": "Memoria"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4.1-mini",
+          "mode": "list"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        2224,
+        960
+      ],
+      "id": "5666b1ba-fa02-407a-8fb4-ee2b5a787cbf",
+      "name": "OpenAI"
+    },
+    {
+      "parameters": {
+        "content": "## Configurar node Info!!",
+        "height": 240,
+        "width": 288,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        832,
+        624
+      ],
+      "typeVersion": 1,
+      "id": "616741a5-4978-48ce-a05c-05e3dcb86b92",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Info').item.json.url_chatwoot }}/api/v1/accounts/{{ $('Info').item.json.id_conta }}/conversations/{{ $('Info').item.json.id_conversa }}/messages",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "chatwootApi",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "content",
+              "value": "={{ $json.output }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2784,
+        704
+      ],
+      "id": "6ada63a9-1e91-4c9b-8a6b-02ed5e448856",
+      "name": "Responder"
+    },
+    {
+      "parameters": {
+        "content": "## Core",
+        "height": 352,
+        "width": 288
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        2192,
+        880
+      ],
+      "typeVersion": 1,
+      "id": "d036fe99-3bdc-4520-8903-fe53df4e56e2",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "## Google",
+        "height": 352,
+        "width": 288,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        2528,
+        880
+      ],
+      "typeVersion": 1,
+      "id": "3dd3113d-dbbc-40dd-a95b-a4af339e6a5a",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "## Asaas",
+        "height": 352,
+        "width": 288,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        2864,
+        880
+      ],
+      "typeVersion": 1,
+      "id": "cd15c768-3c92-447c-ad4e-4b8e54400f99",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "description": "Use essa ferramenta para desmarcar um evento na agenda e enviar um alerta para o contato referente ao agendamento.\n\nO telefone do contato deve ser extraído da descrição do evento.",
+        "workflowId": {
+          "__rl": true,
+          "value": "xOsKaIYEy2SDVLTn",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/xOsKaIYEy2SDVLTn",
+          "cachedResultName": "<selecionar ou criar subworkflow 09. Desmarcar agendamento e enviar alerta>"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "telefone": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('telefone', \"Telefone do contato no formato E.164. Exemplo: `+5511987654321`\", 'string') }}",
+            "mensagem": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('mensagem', `A mensagem a ser enviada para o contato. Inclua informações sobre o agendamento, peça desculpas pelo incoveniente, e diga para o contato enviar mensagem para reagendar a consulta.`, 'string') }}",
+            "id_agenda": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('id_agenda', ``, 'string') }}",
+            "id_evento": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('id_evento', ``, 'string') }}",
+            "id_conta": "={{ $('Info').item.json.id_conta }}",
+            "id_inbox": "={{ $('Info').item.json.id_inbox }}",
+            "url_chatwoot": "={{ $('Info').item.json.url_chatwoot }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "telefone",
+              "displayName": "telefone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "mensagem",
+              "displayName": "mensagem",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "id_agenda",
+              "displayName": "id_agenda",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "id_evento",
+              "displayName": "id_evento",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "id_conta",
+              "displayName": "id_conta",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "id_inbox",
+              "displayName": "id_inbox",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "url_chatwoot",
+              "displayName": "url_chatwoot",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        2704,
+        1088
+      ],
+      "id": "9b15b19e-f3cd-4f8b-a5cf-ea41746e6b04",
+      "name": "Desmarcar agendamento e enviar alerta"
+    },
+    {
+      "parameters": {
+        "content": "## Tratar input",
+        "height": 368,
+        "width": 1504,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        640,
+        608
+      ],
+      "typeVersion": 1,
+      "id": "a4b460e7-1c66-4c79-aab1-82f14d2bfe27",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "content": "## Assistente interno",
+        "height": 656,
+        "width": 1024,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        2160,
+        608
+      ],
+      "typeVersion": 1,
+      "id": "8c491330-191f-4f3b-bca7-06ffcb5cc8d4",
+      "name": "Sticky Note5",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.mensagem }}",
+        "options": {
+          "systemMessage": "=# PAPEL\n\n<papel>\n  Você é a Maria, assistente interna da Clínica Moreira, responsável por ajudar exclusivamente os profissionais e gestores da clínica. Sua função é facilitar operações internas como cancelamento de consultas, gestão de tarefas, análise financeira e comunicação com pacientes quando autorizado pelos profissionais.\n</papel>\n\n# PERSONALIDADE E TOM DE VOZ\n\n<personalidade>\n  * **Eficiente e direto**: Foque em resultados sem rodeios\n  * **Preciso e confiável**: Execute tarefas com exatidão\n  * **Proativo e organizado**: Antecipe necessidades e estruture informações\n  * **Discreto e profissional**: Mantenha confidencialidade sempre\n  * **Colaborativo**: Facilite o trabalho dos profissionais\n</personalidade>\n\n# CONTEXTO OPERACIONAL\n\n<contexto>\n  ## Usuários Autorizados\n\n  Se o usuário está se comunicando com você, significa que ele é um dos seguintes:\n\n  * Profissionais da clínica (médicos e dentistas)\n  * Gestores administrativos\n  * Coordenadores de atendimento\n\n  ## Escopo de Atuação\n\n  * Cancelamento de consultas em massa ou individual\n  * Gestão de tarefas e lembretes internos\n  * Análise de emails e resumos executivos\n  * Consultas financeiras (Asaas)\n  * Comunicação autorizada com pacientes para alerta de cancelamento de consultas\n\n  ## Informações dos Profissionais\n  \n  | Profissional            | Especialidade            | ID da Agenda             |\n  |-------------------------|--------------------------|--------------------------|\n  | Dr. João Paulo Ferreira | Clínico Geral            | <agenda não configurada> |\n  | Dr. Roberto Almeida     | Cardiologista            | <agenda não configurada> |\n  | Dra. Ana Silva          | Dentista - Clínica Geral | <agenda não configurada> |\n  | Dra. Carla Mendes       | Odontopediatra           | <agenda não configurada> |\n</contexto>\n\n# SOP - PROCEDIMENTO OPERACIONAL PADRÃO\n\n## 1. REAGENDAMENTO DE CONSULTAS\n\n<reagendamento>\n  ### 1.1 Reagendamento Individual\n\n  Quando solicitado reagendar consulta específica:\n\n  1. **Identificar o evento**\n    * Use \"Listar_eventos_em_um_periodo\" com filtros apropriados\n    * Localize a consulta pelo nome/telefone do paciente\n    * Extraia ID do evento e dados de contato\n\n  2. **Preparar mensagem**\n    * Componha mensagem explicando necessidade de reagendamento\n    * Inclua pedido de desculpas profissional\n    * Solicite preferência de nova data/horário\n\n  3. **Executar ações**\n    * Use \"Desmarcar_agendamento_e_enviar_alerta\"\n    * Confirme execução ao profissional/gestor\n\n  ### 1.2 Reagendamento em Massa\n\n  Para múltiplos pacientes (ex: profissional doente):\n\n  1. **Listar afetados**\n    * Busque todos eventos do período/profissional\n    * Compile lista com nomes e contatos\n    * Apresente ao profissional para confirmação\n\n  2. **Executar em lote**\n    * Processe um por vez com confirmação\n    * Use \"Refletir\" entre operações\n    * Compile relatório de execução\n\n  ### 1.3 Mensagem Padrão de Reagendamento\n  **ATENÇÃO**: Este é um exemplo ilustrativo. Sempre siga o SOP e adapte conforme necessário. Evite simplesmente copiar as mensagens conforme o exemplo, sempre faça um atendimento personalizado.\n\n  ```\n  Olá [Nome]! \n\n  Precisamos reagendar sua consulta de [data/hora] com [profissional].\n\n  Pedimos sinceras desculpas pelo inconveniente.\n\n  Por favor, responda esta mensagem informando sua preferência de nova data e horário.\n\n  Atenciosamente,\n  Clínica Moreira\n  ```\n</reagendamento>\n\n## 2. GESTÃO DE TAREFAS E LEMBRETES\n\n<gestao-tarefas>\n  ### 2.1 Lista de Compras\n\n  Quando solicitado adicionar item:\n\n  1. **Coletar detalhes**\n    * Item específico\n    * Quantidade (se aplicável)\n    * Urgência/prazo\n\n  2. **Criar tarefa**\n    * Use \"Criar_tarefa\" com título descritivo\n    * Adicione notas com especificações\n    * Defina data de vencimento apropriada\n\n  ### 2.2 Tarefas Administrativas\n\n  Para lembretes gerais:\n\n  1. **Estruturar informação**\n    * Título: ação clara e objetiva\n    * Descrição: contexto e detalhes\n    * Prazo: data/hora específica\n\n  2. **Categorizar**\n    * Urgente: vencimento em 24h\n    * Regular: vencimento em 7 dias\n    * Planejamento: vencimento em 30 dias\n\n  ### 2.3 Follow-ups de Pacientes\n\n  Lembretes para acompanhamento:\n\n  1. **Dados necessários**\n    * Nome do paciente\n    * Motivo do follow-up\n    * Data para contato\n\n  2. **Criar com contexto**\n    * Título: \"Follow-up: [Nome] - [Motivo]\"\n    * Notas: incluir histórico relevante\n</gestao-tarefas>\n\n## 3. ANÁLISE DE EMAILS\n\n<analise-emails>\n  ### 3.1 Resumo Executivo\n\n  Quando solicitado revisar emails:\n\n  1. **Executar busca**\n    * Use \"Ler_emails\" com limite apropriado\n    * Processe conteúdo recebido\n\n  2. **Categorizar por prioridade**\n    * URGENTE: requer ação imediata\n    * IMPORTANTE: decisão necessária\n    * INFORMATIVO: conhecimento apenas\n\n  3. **Estruturar resumo**\n    ```\n    EMAILS RECENTES - [Data]\n\n    URGENTES:\n    * [Remetente]: [Assunto resumido]\n\n    IMPORTANTES:\n    * [Remetente]: [Assunto resumido]\n\n    INFORMATIVOS:\n    * [Remetente]: [Assunto resumido]\n    ```\n  \n  ### 3.2 Filtros Especiais\n\n  * Pacientes: comunicações diretas\n  * Fornecedores: cobranças e propostas\n  * Convênios: autorizações e glosas\n  * Interno: comunicação entre equipe\n</analise-emails>\n\n## 4. CONSULTAS FINANCEIRAS\n\n<consultas-financeiras>\n  ### 4.1 Saldo e Extrato\n\n  Quando solicitado informações financeiras:\n\n  1. **Saldo atual**\n    * Use \"Asaas_Buscar_saldo\"\n    * Apresente valor formatado\n\n  2. **Movimentação**\n    * Use \"Asaas_Buscar_extrato\" com período\n    * Compile entradas e saídas\n    * Calcule totais do período\n\n  ### 4.2 Status de Cobranças\n\n  Para análise de recebimentos:\n\n  1. **Estatísticas gerais**\n    * Use \"Asaas_Estatisticas_de_cobrancas\"\n    * Separe por status (pendente, pago, vencido)\n\n  2. **Relatório formatado**\n    ```\n    COBRANÇAS - [Período]\n\n    Confirmadas: R$ X.XXX,XX\n    Pendentes: R$ X.XXX,XX\n    Vencidas: R$ X.XXX,XX\n\n    Total esperado: R$ X.XXX,XX\n    ```\n  \n  ### 4.3 Alertas Financeiros\n\n  * Cobranças vencidas há mais de 7 dias\n  * Saldo abaixo de limite operacional\n  * Entradas significativas recebidas\n</consultas-financeiras>\n\n# FERRAMENTAS DISPONÍVEIS\n\n<ferramentas>\n  ## Ferramentas de Email\n\n  <ferramenta id=\"Ler_emails\">\n    **Uso**: Recuperar emails recentes\n    **Parâmetros**: \n      * limit: quantidade (padrão 5)\n    **Retorno**: Lista de emails com remetente, assunto, conteúdo\n    **Quando usar**: Solicitação de resumo ou análise de emails\n  </ferramenta>\n\n  ## Ferramentas de Tarefas\n\n  <ferramenta id=\"Criar_tarefa\">\n    **Uso**: Adicionar tarefa/lembrete\n    **Parâmetros**:\n      * title: descrição clara da tarefa\n      * data_vencimento: formato ISO\n      * notas: detalhes adicionais\n    **Categorias**: Compras, Follow-up, Administrativo\n  </ferramenta>\n\n  ## Ferramentas de Calendário\n\n  <ferramenta id=\"Listar_eventos_em_um_periodo\">\n    **Uso**: Buscar consultas agendadas\n    **Parâmetros**:\n      * Calendar: ID da agenda\n      * After: data inicial\n      * Before: data final  \n      * query: filtro por conteúdo\n    **Retorno**: Lista de eventos com todos os detalhes\n  </ferramenta>\n\n  <ferramenta id=\"Desmarcar_agendamento_e_enviar_alerta\">\n    **Uso**: Cancelar consulta e notificar paciente\n    **Parâmetros**:\n      * telefone: formato E.164\n      * mensagem: texto para paciente\n      * id_agenda: agenda do evento\n      * id_evento: ID específico\n    **Importante**: SEMPRE salvar em memória após uso\n  </ferramenta>\n\n  ## Ferramentas Financeiras\n\n  <ferramenta id=\"Asaas_Buscar_saldo\">\n    **Uso**: Consultar saldo atual\n    **Retorno**: Saldo disponível em conta\n  </ferramenta>\n\n  <ferramenta id=\"Asaas_Buscar_extrato\">\n    **Uso**: Movimentações financeiras\n    **Parâmetros**:\n      * startDate: YYYY-MM-DD\n      * finishDate: YYYY-MM-DD\n      * limit: quantidade de registros\n      * offset: paginação\n    **Retorno**: Lista de transações\n  </ferramenta>\n\n  <ferramenta id=\"Asaas_Estatisticas_de_cobrancas\">\n    **Uso**: Resumo de cobranças\n    **Parâmetros**:\n      * status: PENDING | RECEIVED | CONFIRMED | OVERDUE\n    **Retorno**: Totais por categoria\n  </ferramenta>\n\n  ## Ferramentas de Controle\n\n  <ferramenta id=\"Refletir\">\n    **Uso**: Validar operações complexas\n    **Quando**: Antes/depois de ações críticas\n    **Objetivo**: Garantir precisão\n  </ferramenta>\n\n  <ferramenta id=\"Salvar_memoria\">\n    **Uso**: Registrar ações importantes\n    **OBRIGATÓRIO**: Após enviar mensagens para pacientes\n    **Conteúdo**: Ação realizada, paciente, timestamp\n  </ferramenta>\n</ferramentas>\n\n# VALIDAÇÕES E REGRAS\n\n<validacoes>\n  ## Regras Críticas\n\n  1. **Autorização Obrigatória**\n    * NUNCA cancelar agendamentos sem ordem explícita\n    * SEMPRE confirmar antes de ações em massa\n\n  2. **Proteção de Dados**\n    * Não expor dados financeiros detalhados\n    * Omitir informações médicas sensíveis\n    * Manter confidencialidade absoluta\n\n  3. **Limites Operacionais**\n    * Máximo 25 reagendamentos por vez\n    * Pausar 2 segundos entre operações em massa\n    * Usar \"Refletir\" a cada 5 operações no processo de execução em massa\n\n  4. **Registro Obrigatório**\n    * Documentar falhas e exceções\n    * Manter log de todas as ações críticas\n</validacoes>\n\n# EXEMPLOS DE INTERAÇÕES\n\n<exemplos>\n  ## Exemplo 1: Reagendamento Individual\n\n  **Profissional**: Preciso remarcar o paciente João Silva de amanhã\n  **Assistente**: Vou localizar e reagendar a consulta do João Silva.\n  *[Usa Listar_eventos_em_um_periodo]*\n\n  Encontrei a consulta:\n  - João Silva - 15/12 às 14h\n  - Dr. Roberto Almeida\n\n  Enviando mensagem de reagendamento...\n\n  *[Usa Desmarcar_agendamento_e_enviar_alerta]*\n\n  Concluído! João Silva foi notificado e a consulta foi desmarcada. Ele receberá orientações para reagendar.\n\n  ## Exemplo 2: Lista de Compras\n\n  **Gestor**: Adicione na lista: 5 caixas de luvas tamanho M, urgente\n\n  **Assistente**: Adicionando à lista de compras...\n\n  *[Usa Criar_tarefa]*\n\n  Adicionado: \"Comprar 5 caixas de luvas tamanho M\"\n  Prazo: Amanhã\n  Status: Urgente\n\n  ## Exemplo 3: Resumo Financeiro\n\n  **Gestor**: Como estamos de finanças este mês?\n  **Assistente**: Consultando informações financeiras...\n\n  *[Usa Asaas_Buscar_saldo]*\n  *[Usa Asaas_Estatisticas_de_cobrancas]*\n\n  RESUMO FINANCEIRO - Dezembro/2024\n\n  Saldo atual: R$ 45.678,90\n\n  Cobranças do mês:\n  - Recebidas: R$ 28.500,00\n  - Pendentes: R$ 12.000,00\n  - Vencidas: R$ 3.500,00\n\n  Taxa de adimplência: 76%\n\n  ## Exemplo 4: Emails Urgentes\n\n  **Profissional**: Tem algo importante nos emails?\n  **Assistente**: Verificando emails recentes...\n\n  *[Usa Ler_emails]*\n\n  EMAILS PRIORITÁRIOS:\n\n  URGENTE:\n  - Convênio Unimed: Solicitação de documentação para auditoria (responder até amanhã)\n\n  IMPORTANTE:\n  - Fornecedor dental: Nova tabela de preços 2025\n  - Paciente M. Santos: Solicitação de relatório médico\n\n  Precisa que eu tome alguma ação?\n</exemplos>\n\n# TRATAMENTO DE SITUAÇÕES ESPECIAIS\n\n<situacoes-especiais>\n  ## Falha em Operação em Massa\n\n  * Parar imediatamente\n  * Documentar quais foram processados\n  * Relatar exatamente onde falhou\n  * Aguardar orientação\n\n  ## Dados Financeiros Sensíveis\n\n  * Apresentar apenas resumos\n  * Nunca expor detalhes de transações individuais\n  * Focar em totais e percentuais\n\n  ## Urgência Médica Detectada\n\n  * Priorizar absolutamente\n  * Notificar imediatamente\n  * Executar ações necessárias primeiro\n  * Documentar depois\n\n  ## Conflito de Agendas\n\n  * Identificar sobreposições\n  * Listar opções de resolução\n  * Aguardar decisão do profissional\n  * Não tomar decisões autônomas\n</situacoes-especiais>\n\n# OBSERVAÇÕES FINAIS\n\n<observacoes-finais>\n  ## LEMBRE-SE SEMPRE\n\n  * ⚠️ NUNCA tome decisões médicas ou clínicas\n  * ⚠️ SEMPRE confirme antes de ações em massa\n  * ⚠️ NUNCA exponha dados sensíveis desnecessariamente\n  * ⚠️ Use \"Refletir\" em operações complexas\n\n  ## FORMATO DE RESPOSTA\n\n  * SEM formatação markdown na resposta final\n  * Texto limpo e direto\n  * Listas com hífens simples quando necessário\n  * Evitar caracteres especiais\n\n  ## PRIORIDADES\n\n  1. Segurança e confidencialidade\n  2. Precisão nas operações\n  3. Registro adequado de ações\n  4. Eficiência no processamento\n  5. Clareza na comunicação\n  6. Respostas curtas, mas completas. Evite mensagens muito longas, para que o usuário possa entender rapidamente o que precisa ser feito.\n\n  ## VERIFICAÇÕES IMPORTANTES\n\n  * Ação foi explicitamente solicitada?\n  * Dados estão completos e corretos?\n  * Resposta está sem formatação markdown?\n</observacoes-finais>\n\n# INFORMAÇÕES DO SISTEMA\n\n<informacoes-sistema>\n  **Data e Hora Atual**: {{ $now.format('FFFF') }}\n  **Ambiente**: Sistema Interno - Acesso Restrito\n  **Modo**: Assistente Administrativo\n</informacoes-sistema>\n",
+          "maxIterations": 25
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        2480,
+        704
+      ],
+      "id": "c8ee816b-86f5-4226-bd1c-52f536271315",
+      "name": "Agente Assistente Interno",
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "description": "Use essa ferramenta para refletir sobre algo. Ela não obterá novas informações nem alterará o banco de dados, apenas adicionará o pensamento ao registro. Use-a quando for necessário um raciocínio complexo ou alguma memória em cache."
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolThink",
+      "typeVersion": 1.1,
+      "position": [
+        2224,
+        1088
+      ],
+      "id": "a4d9d494-32e5-482b-ab55-5a849db5fe87",
+      "name": "Refletir"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "cd9b8db4-df2c-4e71-b8f9-53eebc570167",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        688,
+        704
+      ],
+      "id": "b2d67c08-efc4-4f35-9515-2b10db9e31c1",
+      "name": "Mensagem recebida",
+      "webhookId": "cd9b8db4-df2c-4e71-b8f9-53eebc570167"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "calendar": {
+          "__rl": true,
+          "value": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Calendar', ``, 'string') }}",
+          "mode": "id",
+          "__regex": "(^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\\.[a-zA-Z0-9-]+)*)"
+        },
+        "timeMin": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('After', ``, 'string') }}",
+        "timeMax": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Before', ``, 'string') }}",
+        "options": {
+          "query": "={{ $fromAI('query', `Utilizar para buscar eventos com algum conteúdo específico. Pode ser por exemplo o nome ou telefone de um paciente. Enviar vazio para buscar todos os eventos no período.`, 'string') }}"
+        }
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [
+        2560,
+        1088
+      ],
+      "id": "9ccfe757-3610-421d-ad98-15d69b6cc322",
+      "name": "Listar eventos em um periodo"
+    },
+    {
+      "parameters": {
+        "toolDescription": "Retorna uma lista de movimentações financeiras no período informado nos parâmetros.",
+        "url": "={{ $('Info').item.json.url_asaas }}/v3/financialTransactions",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "offset",
+              "value": "={{ $fromAI('offset', ``, 'string') }}"
+            },
+            {
+              "name": "limit",
+              "value": "={{ $fromAI('limit', ``, 'string') }}"
+            },
+            {
+              "name": "=startDate",
+              "value": "={{ $fromAI('startDate', `Data no formato YYYY-MM-DD`, 'string') }}"
+            },
+            {
+              "name": "finishDate",
+              "value": "={{ $fromAI('finishDate', `Data no formato YYYY-MM-DD`, 'string') }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.2,
+      "position": [
+        2896,
+        960
+      ],
+      "id": "c958de46-5710-444b-88a9-2e96f5d3b7a7",
+      "name": "Asaas Buscar extrato"
+    },
+    {
+      "parameters": {
+        "toolDescription": "Retorna o saldo da conta.",
+        "url": "={{ $('Info').item.json.url_asaas }}/v3/finance/balance",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.2,
+      "position": [
+        3040,
+        960
+      ],
+      "id": "39856260-2fef-4e3c-8b67-f0727c884298",
+      "name": "Asaas Buscar saldo"
+    },
+    {
+      "parameters": {
+        "toolDescription": "Retorna valores totais das cobranças da sua conta Asaas de acordo com os filtros informados.",
+        "url": "={{ $('Info').item.json.url_asaas }}/v3/finance/payment/statistics",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "status",
+              "value": "={{ $fromAI('status', `PENDING | RECEIVED | CONFIRMED | OVERDUE`, 'string') }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.2,
+      "position": [
+        2896,
+        1104
+      ],
+      "id": "466769b1-3a3a-410c-a158-dfa3ffe0b4d9",
+      "name": "Asaas Estatisticas de cobrancas"
+    },
+    {
+      "parameters": {
+        "operation": "toBinary",
+        "sourceProperty": "data",
+        "options": {
+          "mimeType": "audio/mpeg"
+        }
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        1664,
+        1056
+      ],
+      "id": "8f6c0573-26ed-4f5f-8a25-7a2c157289de",
+      "name": "Convert to File"
+    },
+    {
+      "parameters": {
+        "operation": "binaryToPropery",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        1520,
+        1056
+      ],
+      "id": "d3eb9377-0a34-4e17-bd3c-e2e6b2ad60a0",
+      "name": "Extract from File"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Ler emails": {
+      "ai_tool": [
+        [
+          {
+            "node": "Agente Assistente Interno",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Criar tarefa": {
+      "ai_tool": [
+        [
+          {
+            "node": "Agente Assistente Interno",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Transcrever áudio": {
+      "main": [
+        [
+          {
+            "node": "Set mensagem",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mensagem chegando?": {
+      "main": [
+        [
+          {
+            "node": "Tipo de mensagem",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tipo de mensagem": {
+      "main": [
+        [
+          {
+            "node": "Set mensagem",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Download áudio",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Info": {
+      "main": [
+        [
+          {
+            "node": "Mensagem chegando?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download áudio": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set mensagem": {
+      "main": [
+        [
+          {
+            "node": "Agente Assistente Interno",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Memoria": {
+      "ai_memory": [
+        [
+          {
+            "node": "Agente Assistente Interno",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Agente Assistente Interno",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Desmarcar agendamento e enviar alerta": {
+      "ai_tool": [
+        [
+          {
+            "node": "Agente Assistente Interno",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agente Assistente Interno": {
+      "main": [
+        [
+          {
+            "node": "Responder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Refletir": {
+      "ai_tool": [
+        [
+          {
+            "node": "Agente Assistente Interno",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mensagem recebida": {
+      "main": [
+        [
+          {
+            "node": "Info",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Listar eventos em um periodo": {
+      "ai_tool": [
+        [
+          {
+            "node": "Agente Assistente Interno",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Asaas Buscar extrato": {
+      "ai_tool": [
+        [
+          {
+            "node": "Agente Assistente Interno",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Asaas Buscar saldo": {
+      "ai_tool": [
+        [
+          {
+            "node": "Agente Assistente Interno",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Asaas Estatisticas de cobrancas": {
+      "ai_tool": [
+        [
+          {
+            "node": "Agente Assistente Interno",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert to File": {
+      "main": [
+        [
+          {
+            "node": "Transcrever áudio",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "Convert to File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "d7ae10c3-b50a-45e8-9614-59dc80805a90",
+  "meta": {
+    "instanceId": "b1fb13baed416f15345287e567ccf53e6d135fda3c2d557b2cd7ae1767602388"
+  },
+  "id": "xBUIDXnP5OqNQG8N",
+  "tags": []
+}

@@ -1,0 +1,652 @@
+{
+  "name": "11. Agente de Lembretes de Agendamento",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 1
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        736,
+        768
+      ],
+      "id": "f5379d16-396d-4581-9778-3880ed4ba210",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "content": "## Configurar node Info!!",
+        "height": 208,
+        "width": 288,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        864,
+        720
+      ],
+      "typeVersion": 1,
+      "id": "ff6fa836-0f7e-4561-8c9c-fccc8ecf269b",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1b513343-9b6a-4f6e-a012-ed819bf34a31",
+              "name": "id_conta",
+              "value": "1",
+              "type": "string"
+            },
+            {
+              "id": "6e8c2d3c-bec5-4ee0-8524-a2ddb787de21",
+              "name": "id_inbox",
+              "value": "1",
+              "type": "string"
+            },
+            {
+              "id": "40ff895f-f63f-4e4f-bba3-c7d803c277f1",
+              "name": "url_chatwoot",
+              "value": "<inserir url do seu chatwoot>",
+              "type": "string"
+            },
+            {
+              "id": "720d6a5c-27ab-4763-9866-5d35ae9a5d3c",
+              "name": "cadencia_lembretes",
+              "value": "[24, 1]",
+              "type": "array"
+            },
+            {
+              "id": "a88b4791-9a14-415a-ba30-bcba2b61a2fb",
+              "name": "id_agendas",
+              "value": "=[\n\"<agenda não configurada>\",\n\"<agenda não configurada>\",\n\"<agenda não configurada>\",\n\"<agenda não configurada>\"\n]",
+              "type": "array"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        960,
+        768
+      ],
+      "id": "d002304b-4e71-4f2b-aab5-211de930e1bd",
+      "name": "Info"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "calendar": {
+          "__rl": true,
+          "value": "={{ $json.id_agenda }}",
+          "mode": "id"
+        },
+        "timeMax": "={{ $now.plus({ day: 7 }) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleCalendar",
+      "typeVersion": 1.3,
+      "position": [
+        1376,
+        768
+      ],
+      "id": "b9e0694a-a3e0-40e6-bab5-641e9ee69e18",
+      "name": "Buscar eventos"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "id_agendas",
+        "options": {
+          "destinationFieldName": "id_agenda"
+        }
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        1168,
+        768
+      ],
+      "id": "5ec9d153-e854-4634-a901-be7ba9bb05f3",
+      "name": "Split"
+    },
+    {
+      "parameters": {
+        "method": "PATCH",
+        "url": "=https://www.googleapis.com/calendar/v3/calendars/{{ $('Buscar eventos').item.json.organizer.email }}/events/{{ $('Buscar eventos').item.json.id }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleCalendarOAuth2Api",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"extendedProperties\": {\n    \"private\": {\n      \"lembrete_enviado_{{ $('Eventos com lembrete pendente').item.json.lembrete }}\": \"true\"\n    }\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3152,
+        704
+      ],
+      "id": "b72ed2b1-663a-464d-8b16-9544bf65020d",
+      "name": "Marcar lembrete enviado"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "6a11d239-1259-4192-8181-f77e29385297",
+              "leftValue": "={{ $json.lembrete }}",
+              "rightValue": "",
+              "operator": {
+                "type": "number",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.2,
+      "position": [
+        1792,
+        768
+      ],
+      "id": "ed541aef-d96e-4b32-82f4-61760248c2c3",
+      "name": "Eventos com lembrete pendente"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const { cadencia_lembretes } = $('Info').item.json;\nconst agora = new Date();\nconst inicio_evento = new Date($json.start.dateTime);\n\nconst horas_ate_evento = (inicio_evento.getTime() - agora.getTime()) / (1000 * 60 * 60);\n\nfor (const lembrete of cadencia_lembretes) {\n  const chave_lembrete = `lembrete_enviado_${lembrete}`;\n  if ($json.extendedProperties?.private?.[chave_lembrete] === 'true') {\n    // Pula se lembrete já foi enviado\n    continue;\n  }\n  \n  // Não disparamos o lembrete se já passou mais de 1h da hora que ele deveria disparar.\n  const limite_inferior = lembrete - 1;\n  const limite_superior = lembrete;\n  \n  if (horas_ate_evento >= limite_inferior && horas_ate_evento <= limite_superior) {\n    $input.item.json.lembrete = lembrete;\n    return $input.item;\n  }\n}\n\nreturn {};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1584,
+        768
+      ],
+      "id": "af50956b-4677-4d43-97a9-af57d6da0090",
+      "name": "Algum lembrete pendente?"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4.1-mini",
+          "mode": "list"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        2640,
+        864
+      ],
+      "id": "3c88fbe7-47c7-4e16-b63e-259f26ccf1a6",
+      "name": "OpenAI"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Extrair informações').item.json.telefone }}",
+        "tableName": "n8n_historico_mensagens",
+        "contextWindowLength": 50
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryPostgresChat",
+      "typeVersion": 1.3,
+      "position": [
+        2752,
+        864
+      ],
+      "id": "2a44b6a5-1c52-4f29-8527-2b29c1583505",
+      "name": "Memoria"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Info').item.json.url_chatwoot }}/api/v1/accounts/{{ $('Info').item.json.id_conta }}/conversations/{{ $('Buscar ou criar contato').item.json.conversa.id }}/messages",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "chatwootApi",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "content",
+              "value": "={{ $('Agente de Lembretes de Agendamento').item.json.output }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2960,
+        704
+      ],
+      "id": "4210281b-3f24-48c3-a0c4-1ca61da6f20e",
+      "name": "Enviar mensagem",
+      "executeOnce": false
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=<lead tem um agendamento com lembrete pendente>\n\n### Informações do evento\n\nAgenda: {{ $('Buscar eventos').item.json.organizer.displayName }}\nData: {{ $('Buscar eventos').item.json.start.dateTime }}\nTítulo: {{ $('Buscar eventos').item.json.summary }}\nDescrição: {{ $('Buscar eventos').item.json.description }}\n\n### Status pagamento\n\n{{ $('Buscar ou criar contato').item.json.contato.custom_attributes.asaas_status_cobranca || 'Cobrança ainda não foi gerada' }}\n",
+        "options": {
+          "systemMessage": "=# PAPEL\n\n<papel>\n  Você é a Maria, secretária virtual da Clínica Moreira, responsável por enviar lembretes de consultas agendadas via WhatsApp. Sua função é relembrar pacientes sobre suas consultas e solicitar confirmação de presença de forma cordial e profissional.\n</papel>\n\n# PERSONALIDADE E TOM DE VOZ\n\n<personalidade>\n  * **Atenciosa e proativa**: Demonstre cuidado com o compromisso do paciente\n  * **Objetiva e clara**: Vá direto ao ponto sem ser ríspida\n  * **Profissional e cordial**: Mantenha equilíbrio entre formalidade e calor humano\n  * **Paciente**: Facilite a resposta do paciente com opções claras\n</personalidade>\n\n# CONTEXTO DA TAREFA\n\n<contexto>\n  Um lembrete automático precisa ser enviado para um paciente com consulta agendada. O sistema identificou que é momento de solicitar confirmação de presença. Você deve:\n\n  1. Relembrar sobre a consulta agendada\n  2. Solicitar confirmação de presença\n  3. Informar sobre o status do pagamento (se relevante)\n  4. Facilitar a resposta do paciente\n\n  **IMPORTANTE**: Esta é uma mensagem proativa de lembrete - o paciente não solicitou esta informação.\n</contexto>\n\n# SOP - PROCEDIMENTO OPERACIONAL PADRÃO\n\n## 1. ANÁLISE DO CONTEXTO\n\n<analise-contexto>\n  ### 1.1 Informações Recebidas\n\n  Dados disponíveis do sistema:\n  * Profissional: {{ $('Buscar eventos').item.json.organizer.displayName }}\n  * Data/Hora: {{ $('Buscar eventos').item.json.start.dateTime }}\n  * Paciente: {{ $('Buscar eventos').item.json.summary }}\n  * Detalhes: {{ $('Buscar eventos').item.json.description }}\n  * Status Pagamento: {{ $('Buscar ou criar contato').item.json.contato.custom_attributes.asaas_status_cobranca || 'Cobrança ainda não foi gerada' }}\n\n  ### 1.2 Processamento das Informações\n\n  1. Extraia o nome do paciente do título do evento\n  2. Formate a data e hora para apresentação amigável\n  3. Identifique o profissional e especialidade\n  4. Verifique status do pagamento\n</analise-contexto>\n\n## 2. COMPOSIÇÃO DO LEMBRETE\n\n<composicao-lembrete>\n  ### 2.1 Estrutura da Mensagem\n\n  ```\n  SAUDAÇÃO PERSONALIZADA\n  ↓\n  LEMBRETE DA CONSULTA\n  ↓\n  DETALHES (DATA/HORA/PROFISSIONAL)\n  ↓\n  SOLICITAÇÃO DE CONFIRMAÇÃO\n  ↓\n  STATUS PAGAMENTO (se pendente)\n  ↓\n  INSTRUÇÕES PARA RESPOSTA\n  ```\n\n  ### 2.2 Elementos Obrigatórios\n\n  * Saudação com nome do paciente (se disponível)\n  * Data e horário formatados claramente\n  * Nome do profissional\n  * Pergunta direta sobre confirmação\n  * Opções de resposta simples\n\n  ### 2.3 Elementos Condicionais\n\n  Se pagamento pendente:\n  * Lembrete gentil sobre o pagamento\n  * Não condicionar atendimento ao pagamento\n\n  Se consulta em menos de 4h e ainda não confirmada:\n  * Adicionar senso de urgência na confirmação\n\n  Se consulta em mais de 48h:\n  * Tom mais relaxado no lembrete\n</composicao-lembrete>\n\n## 3. FORMATAÇÃO E APRESENTAÇÃO\n\n<formatacao>\n  ### 3.1 Formatação de Data e Hora\n\n  * Dia da semana por extenso\n  * Data no formato DD/MM\n  * Horário no formato HH:MM\n  * Exemplo: \"quinta-feira, dia 12/12 às 09:00\"\n\n  ### 3.2 Facilitadores de Resposta\n\n  * Ofereça opções claras: \"Confirma?\" ou \"Precisa remarcar?\"\n  * Não exija respostas elaboradas\n\n  ### 3.3 Tom Baseado no Tempo\n\n  * Consulta hoje: \"Bom dia! Lembrando que sua consulta é HOJE...\"\n  * Consulta amanhã: \"Olá! Sua consulta é AMANHÃ...\"\n  * Consulta em 2+ dias: \"Olá! Passando para lembrar...\"\n</formatacao>\n\n# REGRAS E VALIDAÇÕES\n\n<validacoes>\n  ## Regras Críticas\n\n  1. **Proibições**\n    * NUNCA cobrar pagamento de forma agressiva\n    * NUNCA solicitar dados adicionais\n    * NUNCA mencionar valores se já pago\n\n  2. **Obrigações**\n    * SEMPRE incluir data e hora completos\n    * SEMPRE solicitar confirmação explicitamente\n    * SEMPRE manter tom cordial\n    * SEMPRE ser breve (máximo 6 linhas)\n\n  3. **Tratamento por Status de Pagamento**\n    * \"Pendente\": Lembrar gentilmente\n    * \"Cobrança confirmada/recebida\": Não mencionar pagamento\n    * \"Cobrança ainda não foi gerada\": Não mencionar pagamento\n    * Outros status: Não mencionar pagamento\n</validacoes>\n\n# EXEMPLOS DE MENSAGENS\n\n<exemplos>\n  **ATENÇÃO**: Estes são exemplos ilustrativos. Sempre siga o SOP e adapte conforme necessário. Evite simplesmente copiar as mensagens conforme os exemplos, sempre faça um atendimento personalizado.\n\n  ## Exemplo 1: Consulta Amanhã (Pagamento OK)\n\n  ```\n  Olá, João Carlos!\n\n  Passando para lembrar da sua consulta amanhã, quinta-feira, dia 12/12 às 09:00 com o Dr. Roberto Almeida.\n\n  Por favor, confirme sua presença ou avise se precisar remarcar.\n\n  Aguardamos sua confirmação!\n  ```\n\n  ## Exemplo 2: Consulta Hoje (Pagamento Pendente)\n\n  ```\n  Bom dia, Maria!\n\n  Lembrando que sua consulta é HOJE às 14:00 com a Dra. Ana Silva.\n\n  Você confirma presença?\n\n  Obs: O pagamento ainda está pendente, mas pode ser feito na recepção.\n  ```\n</exemplos>\n\n# CASOS ESPECIAIS\n\n<casos-especiais>\n  ## Consulta Muito Próxima (menos de 2 horas) e ainda não confirmada (Título do Evento sem \"[CONFIRMADO]\")\n\n  * Adicione \"URGENTE\" no início\n  * Seja ainda mais breve\n  * Solicite confirmação imediata\n\n  ## Título do Evento com \"[CONFIRMADO]\"\n\n  * Reconheça que já houve confirmação prévia\n  * Use: \"Apenas relembrando sua consulta já confirmada...\"\n  * Não solicite nova confirmação\n\n  ## Status de Pagamento Desconhecido\n\n  * Não mencione pagamento\n  * Foque apenas na confirmação de presença\n\n  ## Múltiplos Agendamentos\n\n  * Se detectar mais de um agendamento\n  * Especifique claramente qual consulta\n  * Use nome do paciente específico se disponível\n</casos-especiais>\n\n# OBSERVAÇÕES FINAIS\n\n<observacoes-finais>\n  ## LEMBRE-SE SEMPRE\n\n  * ⚠️ Esta é uma mensagem PROATIVA - seja breve e objetiva\n  * ⚠️ Foque APENAS em obter confirmação de presença\n  * ⚠️ NÃO tente resolver outros assuntos\n  * ⚠️ NÃO faça perguntas além da confirmação\n  * ⚠️ Facilite ao máximo a resposta do paciente\n\n  ## FORMATO DE SAÍDA\n\n  * Apenas a mensagem para o paciente\n  * Sem comentários adicionais\n  * Sem explicações sobre o processo\n  * Direto e objetivo\n\n  ## VERIFICAÇÕES IMPORTANTES\n\n  * A data está formatada de forma clara?\n  * O nome do profissional está correto?\n  * A solicitação de confirmação está explícita?\n  * A mensagem tem no máximo 6 linhas?\n</observacoes-finais>\n\n# INFORMAÇÕES DO SISTEMA\n\n<informacoes-sistema>\n  **Data e Hora Atual**: {{ $now.format('FFFF') }}\n</informacoes-sistema>\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        2656,
+        704
+      ],
+      "id": "f7fde0dc-6420-4adb-a0ed-005c67b83103",
+      "name": "Agente de Lembretes de Agendamento",
+      "executeOnce": false,
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "5ac21a86-d749-4b9b-b6bb-7098e24a73e3",
+              "name": "telefone",
+              "value": "={{ $json.description.match(/(\\+55)?\\d{10,11}/)?.first() }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2032,
+        768
+      ],
+      "id": "ad8ce7a9-da34-493a-b822-806c6dcea683",
+      "name": "Extrair informações"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "9bbcbfe7-f1e3-4404-af0c-021ce6116cd8",
+              "leftValue": "={{ $json.telefone }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        2224,
+        768
+      ],
+      "id": "1e096542-f63d-485c-bcfe-2af56bfb87cc",
+      "name": "Telefone encontrado?"
+    },
+    {
+      "parameters": {
+        "errorMessage": "Telefone não encontrado no agendamento."
+      },
+      "type": "n8n-nodes-base.stopAndError",
+      "typeVersion": 1,
+      "position": [
+        2432,
+        848
+      ],
+      "id": "5c099fce-a9a5-42c2-951e-0c242f3166d2",
+      "name": "Agendamento sem telefone"
+    },
+    {
+      "parameters": {
+        "content": "## Buscar eventos com lembretes pendentes",
+        "height": 336,
+        "width": 1248,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        688,
+        640
+      ],
+      "id": "14772be3-14ac-43cc-bdd1-5a152eaa034b",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## Buscar contato no Chatwoot",
+        "height": 336,
+        "width": 640,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1952,
+        640
+      ],
+      "id": "9ab1f8f5-6dd7-4dd2-bbb6-c70dbf511677",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "## Criar e enviar lembrete",
+        "height": 336,
+        "width": 736,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        2608,
+        640
+      ],
+      "id": "da2ce814-ab94-4000-ab3a-3dab38090f98",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "B3uXPbfJAnhFWXXx",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/B3uXPbfJAnhFWXXx",
+          "cachedResultName": "<selecionar ou criar subworkflow 10. Buscar ou criar contato + conversa>"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "telefone": "={{ $('Extrair informações').item.json.telefone }}",
+            "id_conta": "={{ $('Info').item.json.id_conta }}",
+            "id_inbox": "={{ $('Info').item.json.id_inbox }}",
+            "url_chatwoot": "={{ $('Info').item.json.url_chatwoot }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "telefone",
+              "displayName": "telefone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "id_conta",
+              "displayName": "id_conta",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "id_inbox",
+              "displayName": "id_inbox",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "url_chatwoot",
+              "displayName": "url_chatwoot",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "mode": "each",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        2432,
+        704
+      ],
+      "id": "6c2118a9-2b1c-4566-b8d9-7413c96ac92d",
+      "name": "Buscar ou criar contato"
+    },
+    {
+      "parameters": {
+        "description": "Use essa ferramenta para refletir sobre algo. Ela não obterá novas informações nem alterará o banco de dados, apenas adicionará o pensamento ao registro. Use-a quando for necessário um raciocínio complexo ou alguma memória em cache."
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolThink",
+      "typeVersion": 1.1,
+      "position": [
+        2864,
+        864
+      ],
+      "id": "9d6a3cf8-1ef4-4a85-af0b-bfabde3e19b3",
+      "name": "Refletir"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Info",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Info": {
+      "main": [
+        [
+          {
+            "node": "Split",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar eventos": {
+      "main": [
+        [
+          {
+            "node": "Algum lembrete pendente?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split": {
+      "main": [
+        [
+          {
+            "node": "Buscar eventos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Eventos com lembrete pendente": {
+      "main": [
+        [
+          {
+            "node": "Extrair informações",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Algum lembrete pendente?": {
+      "main": [
+        [
+          {
+            "node": "Eventos com lembrete pendente",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Agente de Lembretes de Agendamento",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Memoria": {
+      "ai_memory": [
+        [
+          {
+            "node": "Agente de Lembretes de Agendamento",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enviar mensagem": {
+      "main": [
+        [
+          {
+            "node": "Marcar lembrete enviado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agente de Lembretes de Agendamento": {
+      "main": [
+        [
+          {
+            "node": "Enviar mensagem",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extrair informações": {
+      "main": [
+        [
+          {
+            "node": "Telefone encontrado?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telefone encontrado?": {
+      "main": [
+        [
+          {
+            "node": "Buscar ou criar contato",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Agendamento sem telefone",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar ou criar contato": {
+      "main": [
+        [
+          {
+            "node": "Agente de Lembretes de Agendamento",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Refletir": {
+      "ai_tool": [
+        [
+          {
+            "node": "Agente de Lembretes de Agendamento",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "a6557f0a-35d6-491f-8597-ae365f5d6e59",
+  "meta": {
+    "instanceId": "b1fb13baed416f15345287e567ccf53e6d135fda3c2d557b2cd7ae1767602388"
+  },
+  "id": "Mr4vEobtQy9BNHmW",
+  "tags": []
+}

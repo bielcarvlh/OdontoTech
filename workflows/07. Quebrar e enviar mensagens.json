@@ -1,0 +1,433 @@
+{
+  "name": "07. Quebrar e enviar mensagens",
+  "nodes": [
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Gatilho').item.json.url_chatwoot }}/api/v1/accounts/{{ $('Gatilho').item.json.id_conta }}/conversations/{{ $('Gatilho').item.json.id_conversa }}/messages",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "chatwootApi",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "content",
+              "value": "={{ $('Para cada mensagem').item.json.mensagem }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2304,
+        752
+      ],
+      "id": "2720acde-db8f-4be4-9bee-45a3ebbaa5c7",
+      "name": "Enviar texto"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n \"mensagens\": [\"mensagem_1\", \"mensagem_2\", \"mensagem_3\", \"mensagem_4\"]\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        1104,
+        960
+      ],
+      "id": "a11f324a-7121-4690-bbff-6f1b5457beb4",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "amount": "={{ Math.min(60*$('Velocidade digitação').item.json.tamanho_mensagem_palavras/$('Velocidade digitação').item.json.palavras_por_minuto, 25) }}"
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        2112,
+        752
+      ],
+      "id": "b08ff337-0fda-4eff-bfa8-e08898559d65",
+      "name": "Espera",
+      "webhookId": "51861363-173f-4ab8-a406-e9b5fc81a1b9"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Gatilho').item.json.url_chatwoot }}/api/v1/accounts/{{ $('Gatilho').item.json.id_conta }}/conversations/{{ $('Gatilho').item.json.id_conversa }}/toggle_typing_status",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "chatwootApi",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "typing_status",
+              "value": "=on"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "text"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1920,
+        752
+      ],
+      "id": "90fca2f2-60d5-440b-9ebb-0cdb4d618e3d",
+      "name": "Digitando..."
+    },
+    {
+      "parameters": {
+        "content": "## Enviar mensagem\n",
+        "height": 324,
+        "width": 388
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        2256,
+        624
+      ],
+      "typeVersion": 1,
+      "id": "b7b03ea8-d893-4d9b-ae4e-da096bfb16c8",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "amount": 1
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        2480,
+        752
+      ],
+      "id": "bec37dab-143c-4d07-93cb-8a3463aa1e70",
+      "name": "Espera enviar mensagem",
+      "webhookId": "c67239b4-9a2a-4901-a8b6-213b1504e568"
+    },
+    {
+      "parameters": {
+        "content": "## Simular a digitação de cada mensagem\n\nO cálculo realizado leva em consideração um tamanho médio de palavras na língua portuguesa de ~4.5 caracteres.",
+        "height": 324,
+        "width": 560,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1680,
+        624
+      ],
+      "typeVersion": 1,
+      "id": "565c1406-5326-49a1-b14a-290f5f2d699a",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "## Quebrar mensagens",
+        "height": 500,
+        "width": 1004,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        656,
+        624
+      ],
+      "typeVersion": 1,
+      "id": "96947142-9cc8-4dd6-b5d7-4372db17edf0",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "mensagem"
+            },
+            {
+              "name": "url_chatwoot"
+            },
+            {
+              "name": "id_conta"
+            },
+            {
+              "name": "id_conversa"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        720,
+        736
+      ],
+      "id": "89d88922-13e5-4c37-94d9-f0c0ba464f52",
+      "name": "Gatilho"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        1440,
+        736
+      ],
+      "id": "ffa38436-8e80-458e-96cb-62e33a6448ef",
+      "name": "Para cada mensagem"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "2abf4045-85d8-4999-90e3-72126449ea83",
+              "name": "palavras_por_minuto",
+              "value": "=150",
+              "type": "string"
+            },
+            {
+              "id": "8fd6b9d8-9918-451e-9a19-a33619ff73f7",
+              "name": "tamanho_mensagem_palavras",
+              "value": "={{ $('Para cada mensagem').item.json.mensagem.length/4.5 }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1728,
+        752
+      ],
+      "id": "b44f4f9c-23be-4a41-901f-3b905b4c0d3d",
+      "name": "Velocidade digitação"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4.1-mini",
+          "mode": "list"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        848,
+        960
+      ],
+      "id": "ce28e00f-2932-4270-a9d8-284fb6fadd18",
+      "name": "OpenAI Chat Model"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "output.mensagens",
+        "options": {
+          "destinationFieldName": "mensagem"
+        }
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        1232,
+        736
+      ],
+      "id": "056cc582-0dae-489f-8781-bb386a3503c0",
+      "name": "Split"
+    },
+    {
+      "parameters": {
+        "description": "Use essa ferramenta para refletir sobre algo. Ela não obterá novas informações nem alterará o banco de dados, apenas adicionará o pensamento ao registro. Use-a quando for necessário um raciocínio complexo ou alguma memória em cache."
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolThink",
+      "typeVersion": 1.1,
+      "position": [
+        976,
+        960
+      ],
+      "id": "978e0495-6dd9-4aee-b999-f684a6ca7a62",
+      "name": "Refletir"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.mensagem }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=## PAPEL\n\nVocê é um agente que simula o comportamento humano ao enviar mensagens em um aplicativo de mensagens como o WhatsApp ou Telegram. Seu objetivo é pegar uma mensagem longa recebida como entrada e dividi-la em múltiplas mensagens menores — sem alterar nenhuma palavra do conteúdo original — apenas separando em partes naturais, como um humano faria ao digitar e enviar aos poucos.\n\n## OBJETIVO\n\nTransformar uma única mensagem em um **json** com o campo \"mensagens\" que é um **array de strings**, simulando o envio humano em blocos de texto menores. Por exemplo:\n\n**Entrada:**\n\n> Olá! Estou te mandando essa mensagem para explicar melhor o que aconteceu ontem. Eu cheguei lá por volta das 18h, como combinado, mas não encontrei ninguém. Será que houve algum problema?\n\n**Saída:**\n\n{\n  \"mensagens\": [\n    \"Olá! Estou te mandando essa mensagem para explicar melhor o que aconteceu ontem\",\n    \"Eu cheguei lá por volta das 18h, como combinado\"\n    \"Mas não encontrei ninguém\",\n    \"Será que houve algum problema?\"\n  ]\n}\n\n## FERRAMENTA\n\n- **Refletir**\nUse essa ferramenta sempre para melhorar seu raciocínio e resposta em situações complexas.\n\n## EXEMPLOS\n\n### Exemplo 1: Mensagem simples\n\n**Entrada:**\n\nOi! Tudo bem por aí? Estava pensando em te mandar aquele documento ainda hoje, mas antes queria tirar umas dúvidas. Você pode me ligar assim que puder?\n\n**Saída esperada:**\n```json\n{\n  \"mensagens\": [\n    \"Oi! Tudo bem por aí?\",\n    \"Estava pensando em te mandar aquele documento ainda hoje, mas antes queria tirar umas dúvidas.\",\n    \"Você pode me ligar assim que puder?\"\n  ]\n}\n```\n\n### Exemplo 2: Mensagem com lista (NÃO QUEBRAR)\n\n**Entrada:**\n\nOi! Seguem os documentos que você pediu:\n1. Contrato assinado\n2. Comprovante de pagamento\n3. Nota fiscal\n4. Certificado de conclusão\nMe avisa quando receber tudo!\n\n**Saída esperada:**\n```json\n{\n  \"mensagens\": [\n    \"Oi! Seguem os documentos que você pediu:\",\n    \"1. Contrato assinado\\n2. Comprovante de pagamento\\n3. Nota fiscal\\n4. Certificado de conclusão\",\n    \"Me avisa quando receber tudo!\"\n  ]\n}\n```\n\n**❌ INCORRETO (não fazer):**\n```json\n{\n  \"mensagens\": [\n    \"Oi! Seguem os documentos que você pediu:\",\n    \"1. Contrato assinado\\n2. Comprovante de pagamento\",\n    \"3. Nota fiscal\\n4. Certificado de conclusão\",\n    \"Me avisa quando receber tudo!\"\n  ]\n}\n```\n\n## REGRAS\n\n- Não reescreva o conteúdo. Apenas separe em mensagens menores respeitando a pontuação e pausas naturais.\n- As divisões devem parecer naturais — pense como uma pessoa que está digitando e envia aos poucos.\n- Evite cortar frases no meio sem necessidade.\n- Sempre retorne como um array de strings com a mesma ordem do texto original. \n- Remova vírgulas e pontos nos finais das mensagens, quando necessário.\n- Tente manter cada mensagem entre 1 a 4 frases no máximo, se o texto permitir.\n- **NUNCA QUEBRE A MENSAGEM EM MAIS DE 5 PARTES**\n- Mantenha itens de lista na mesma mensagem. **NUNCA QUEBRE LISTAS EM MÚLTIPLAS MENSAGENS**\n\n## FORMATO DE RESPOSTA\n\nVocê deve responder apenas com um json com o campo \"mensagens\" que é um array de strings, sem introduções, explicações ou textos adicionais."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        912,
+        736
+      ],
+      "id": "6de5e372-0dc1-4615-801b-7addccd1986b",
+      "name": "Agente divisor de mensagens",
+      "retryOnFail": true
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Enviar texto": {
+      "main": [
+        [
+          {
+            "node": "Espera enviar mensagem",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Agente divisor de mensagens",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Espera": {
+      "main": [
+        [
+          {
+            "node": "Enviar texto",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Digitando...": {
+      "main": [
+        [
+          {
+            "node": "Espera",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Espera enviar mensagem": {
+      "main": [
+        [
+          {
+            "node": "Para cada mensagem",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gatilho": {
+      "main": [
+        [
+          {
+            "node": "Agente divisor de mensagens",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Para cada mensagem": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Velocidade digitação",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Velocidade digitação": {
+      "main": [
+        [
+          {
+            "node": "Digitando...",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Agente divisor de mensagens",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split": {
+      "main": [
+        [
+          {
+            "node": "Para cada mensagem",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Refletir": {
+      "ai_tool": [
+        [
+          {
+            "node": "Agente divisor de mensagens",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agente divisor de mensagens": {
+      "main": [
+        [
+          {
+            "node": "Split",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "fd7ab358-f887-4296-b703-0da0db1b2e6b",
+  "meta": {
+    "instanceId": "b1fb13baed416f15345287e567ccf53e6d135fda3c2d557b2cd7ae1767602388"
+  },
+  "id": "637Mzz0bjwg7cHQH",
+  "tags": []
+}
