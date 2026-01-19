@@ -1,54 +1,91 @@
 # OdontoTech
-# Ecossistema de Atendimento Inteligente para Clínica Odontológica
 
-Projeto de estágio que implementa um ecossistema de agentes autônomos
-para atendimento, agendamento, cobrança e recuperação de clientes
-via WhatsApp.
+## Ecossistema de Atendimento Inteligente para Clínica Odontológica
 
-## Visão Geral
+Projeto de estágio que implementa um ecossistema de agentes autônomos para atendimento, agendamento, cobrança e recuperação de clientes via WhatsApp, utilizando automação, inteligência artificial e integração com serviços externos.
 
-O sistema não é um chatbot simples.
-Ele funciona como um funcionário digital completo,
-orquestrando múltiplos workflows independentes.
+---
 
-## Arquitetura
+## 🎯 Objetivo do Projeto
 
-- n8n como orquestrador de agentes
-- PostgreSQL como memória de longo prazo e fila de controle
-- OpenAI para interpretação de intenções
-- Google Calendar para gestão de agenda
-- Asaas para cobranças e Pix
-- Chatwoot como central de atendimento
+Criar um sistema que vá além de um chatbot tradicional, funcionando como um **funcionário digital completo**, capaz de executar tarefas reais da clínica de forma autônoma, organizada e escalável.
 
-## Organização dos Workflows
+---
 
-- 00 - Configurações gerais
-- 01 - Secretária Inteligente (orquestrador)
-- 03 - Busca inteligente de janelas de agendamento
-- 04 - Criação e atualização de eventos no Google Calendar
-- 06 - Integração financeira com Asaas
-- 07 - Humanização e controle de envio de mensagens
-- 08 - Assistente interno da clínica
-- 09 - Cancelamento e alertas
-- 11 - Agente ativo de lembretes de consulta
-- 12 - Agente de recuperação de leads
+## 🧠 Visão Geral da Solução
 
-## Controle de Mensagens Encavaladas
+O sistema é baseado em uma arquitetura modular, onde cada responsabilidade é isolada em workflows independentes, orquestrados por um agente central inteligente.
 
-O PostgreSQL é utilizado para:
-- Controlar estado por usuário
-- Garantir ordem das mensagens
-- Evitar múltiplas execuções simultâneas
-- Permitir retomada de contexto
+Principais características:
 
-## Resultados
+- Atendimento automático 24/7
+- Controle de concorrência de mensagens no WhatsApp
+- Agendamento inteligente de consultas
+- Geração e acompanhamento de cobranças
+- Lembretes automáticos de consultas
+- Recuperação ativa de leads inativos
+- Escalonamento para atendimento humano quando necessário
 
-- Atendimento 24/7
-- Redução de faltas (no-show)
-- Recuperação automática de clientes
-- Menor custo operacional
+---
 
-## Segurança
+## 🏗️ Arquitetura
 
-Credenciais e dados sensíveis não fazem parte do repositório.
-Em produção, são armazenados no cofre de credenciais do n8n.
+- **n8n**: Orquestração dos fluxos e agentes
+- **PostgreSQL**: Memória de longo prazo, fila de mensagens e controle de estado
+- **OpenAI**: Interpretação de intenções e tomada de decisão
+- **WhatsApp**: Canal principal de comunicação
+- **Chatwoot**: Centralização do atendimento humano
+- **Google Calendar**: Gestão de agenda
+- **Asaas**: Cobrança e pagamentos
+- **Whisper / ElevenLabs**: Áudio e voz (quando aplicável)
+
+---
+
+## 📸 Imagens do Projeto
+
+As imagens do sistema (prints do Chatwoot, WhatsApp, fluxos do n8n e estrutura do banco de dados) estão disponíveis no Google Drive:
+
+👉 **LINK DO DRIVE AQUI**
+
+---
+
+## 🎥 Vídeo de Demonstração
+
+O vídeo abaixo demonstra o funcionamento completo do sistema em um cenário real, incluindo atendimento, agendamento, pagamento, cancelamento e escalonamento para humano:
+
+👉 **LINK DO VÍDEO AQUI**
+
+---
+
+## 📂 Estrutura dos Workflows
+
+Os arquivos `.json` presentes neste repositório representam os workflows do n8n, organizados por responsabilidade, como:
+
+- Configuração inicial do ambiente
+- Agente central (Secretária Inteligente)
+- Agendamento
+- Financeiro
+- Lembretes automáticos
+- Recuperação de clientes
+- Integração com atendimento humano
+
+---
+
+## ⚠️ Observações Importantes
+
+- Arquivos de mídia (imagens e vídeos) não estão versionados neste repositório para manter o projeto leve.
+- Credenciais, tokens e dados sensíveis foram removidos dos arquivos `.json`.
+- O projeto foi desenvolvido com foco em ambiente real de produção.
+
+---
+
+## 🧑‍💻 Autor
+
+Projeto desenvolvido como trabalho de conclusão de curso / estágio supervisionado.
+Gabriel Silva Carvalho e Vitor (DS3 2025)
+
+---
+
+## 📌 Conclusão
+
+Este projeto resolve problemas reais enfrentados por clínicas odontológicas, utilizando automação e IA de forma prática, estruturada e aplicável ao mercado.
