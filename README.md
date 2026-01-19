@@ -45,7 +45,7 @@ Principais características:
 
 As imagens do sistema (prints do Chatwoot, WhatsApp, fluxos do n8n e estrutura do banco de dados) estão disponíveis no Google Drive:
 
-👉 **LINK DO DRIVE AQUI**
+👉 https://drive.google.com/drive/folders/15zMaPbFSfB1Z98JsGNxbf1j6FC0x-8f7?usp=sharing
 
 ---
 
