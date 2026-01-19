@@ -53,7 +53,7 @@ As imagens do sistema (prints do Chatwoot, WhatsApp, fluxos do n8n e estrutura d
 
 O vídeo abaixo demonstra o funcionamento completo do sistema em um cenário real, incluindo atendimento, agendamento, pagamento, cancelamento e escalonamento para humano:
 
-👉 **LINK DO VÍDEO AQUI**
+👉 https://youtu.be/71sdniw0ziU
 
 ---
 
