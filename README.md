@@ -1,42 +1,54 @@
 # OdontoTech
-Sistema de atendimento inteligente para clínica odontológica usando n8n, IA e PostgreSQL.
-
 # Ecossistema de Atendimento Inteligente para Clínica Odontológica
 
-Este projeto implementa um ecossistema de agentes autônomos para atendimento,
-agendamento, cobrança e recuperação de clientes em uma clínica odontológica.
+Projeto de estágio que implementa um ecossistema de agentes autônomos
+para atendimento, agendamento, cobrança e recuperação de clientes
+via WhatsApp.
 
-## 🎯 Objetivo
-Automatizar o atendimento via WhatsApp, reduzir faltas, recuperar leads e
-centralizar a operação da clínica com uso de IA e automação.
+## Visão Geral
 
-## 🧠 Arquitetura
-- n8n como orquestrador de workflows
-- PostgreSQL como memória de longo prazo e controle de estado
+O sistema não é um chatbot simples.
+Ele funciona como um funcionário digital completo,
+orquestrando múltiplos workflows independentes.
+
+## Arquitetura
+
+- n8n como orquestrador de agentes
+- PostgreSQL como memória de longo prazo e fila de controle
 - OpenAI para interpretação de intenções
-- Google Calendar para agenda
-- Asaas para pagamentos
+- Google Calendar para gestão de agenda
+- Asaas para cobranças e Pix
 - Chatwoot como central de atendimento
 
-## 🧩 Workflows
+## Organização dos Workflows
+
+- 00 - Configurações gerais
 - 01 - Secretária Inteligente (orquestrador)
-- 03 - Agendamento inteligente
-- 06 - Financeiro (Pix e cobranças)
-- 11 - Lembretes automáticos
-- 13 - Recuperação de leads
+- 03 - Busca inteligente de janelas de agendamento
+- 04 - Criação e atualização de eventos no Google Calendar
+- 06 - Integração financeira com Asaas
+- 07 - Humanização e controle de envio de mensagens
+- 08 - Assistente interno da clínica
+- 09 - Cancelamento e alertas
+- 11 - Agente ativo de lembretes de consulta
+- 12 - Agente de recuperação de leads
 
-## 🗃️ Banco de Dados
+## Controle de Mensagens Encavaladas
+
 O PostgreSQL é utilizado para:
-- Persistência de contexto
-- Controle de fila por usuário
-- Prevenção de mensagens encavaladas
-- Recuperação automática de clientes
+- Controlar estado por usuário
+- Garantir ordem das mensagens
+- Evitar múltiplas execuções simultâneas
+- Permitir retomada de contexto
 
-## 🚀 Resultados
+## Resultados
+
 - Atendimento 24/7
-- Redução de no-show
-- Recuperação de vendas
+- Redução de faltas (no-show)
+- Recuperação automática de clientes
 - Menor custo operacional
 
-## ⚠️ Observações
-Credenciais e dados sensíveis foram removidos por segurança.
+## Segurança
+
+Credenciais e dados sensíveis não fazem parte do repositório.
+Em produção, são armazenados no cofre de credenciais do n8n.
