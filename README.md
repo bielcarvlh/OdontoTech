@@ -2,90 +2,63 @@
 
 ## Ecossistema de Atendimento Inteligente para Clínica Odontológica
 
-Projeto de estágio que implementa um ecossistema de agentes autônomos para atendimento, agendamento, cobrança e recuperação de clientes via WhatsApp, utilizando automação, inteligência artificial e integração com serviços externos.
+Projeto de estágio que implementa um ecossistema de agentes autônomos para atendimento via WhatsApp, utilizando **n8n**, **Chatwoot**, **PostgreSQL** e integrações externas para agendamento, cobrança e recuperação de pacientes.
 
----
-
-## 🎯 Objetivo do Projeto
-
-Criar um sistema que vá além de um chatbot tradicional, funcionando como um **funcionário digital completo**, capaz de executar tarefas reais da clínica de forma autônoma, organizada e escalável.
-
----
-
-## 🧠 Visão Geral da Solução
-
-O sistema é baseado em uma arquitetura modular, onde cada responsabilidade é isolada em workflows independentes, orquestrados por um agente central inteligente.
-
-Principais características:
-
-- Atendimento automático 24/7
-- Controle de concorrência de mensagens no WhatsApp
-- Agendamento inteligente de consultas
-- Geração e acompanhamento de cobranças
-- Lembretes automáticos de consultas
-- Recuperação ativa de leads inativos
-- Escalonamento para atendimento humano quando necessário
-
----
-
-## 🏗️ Arquitetura
-
-- **n8n**: Orquestração dos fluxos e agentes
-- **PostgreSQL**: Memória de longo prazo, fila de mensagens e controle de estado
-- **OpenAI**: Interpretação de intenções e tomada de decisão
-- **WhatsApp**: Canal principal de comunicação
-- **Chatwoot**: Centralização do atendimento humano
-- **Google Calendar**: Gestão de agenda
-- **Asaas**: Cobrança e pagamentos
-- **Whisper / ElevenLabs**: Áudio e voz (quando aplicável)
-
----
-
-## 📸 Imagens do Projeto
-
-As imagens do sistema (prints do Chatwoot, WhatsApp, fluxos do n8n e estrutura do banco de dados) estão disponíveis no Google Drive:
-
-👉 https://drive.google.com/drive/folders/15zMaPbFSfB1Z98JsGNxbf1j6FC0x-8f7?usp=sharing
+O sistema não funciona como um chatbot simples. Ele atua como um **funcionário digital**, orquestrando múltiplos workflows independentes e mantendo controle de estado, histórico e concorrência de mensagens.
 
 ---
 
 ## 🎥 Vídeo de Demonstração
 
-O vídeo abaixo demonstra o funcionamento completo do sistema em um cenário real, incluindo atendimento, agendamento, pagamento, cancelamento e escalonamento para humano:
+O vídeo apresenta o funcionamento completo do sistema em um cenário real, incluindo:
+- Atendimento automático via WhatsApp
+- Agendamento de consultas
+- Confirmações e lembretes
+- Cobrança e recuperação de pacientes
+- Escalonamento para atendimento humano
 
-👉 https://youtu.be/bc-bUDF7NU4
-
----
-
-## 📂 Estrutura dos Workflows
-
-Os arquivos `.json` presentes neste repositório representam os workflows do n8n, organizados por responsabilidade, como:
-
-- Configuração inicial do ambiente
-- Agente central (Secretária Inteligente)
-- Agendamento
-- Financeiro
-- Lembretes automáticos
-- Recuperação de clientes
-- Integração com atendimento humano
+👉 **Link do vídeo:**  
+https://drive.google.com/file/d/1IHeuxYd9wnhhk22YaYk9ONhgDGHFz9jT/view?usp=sharing
 
 ---
 
-## ⚠️ Observações Importantes
+## 📄 Documentação
 
-- Arquivos de mídia (imagens e vídeos) não estão versionados neste repositório para manter o projeto leve.
-- Credenciais, tokens e dados sensíveis foram removidos dos arquivos `.json`.
-- O projeto foi desenvolvido com foco em ambiente real de produção.
+A documentação completa do projeto está disponível em PDF e contém:
+- Visão geral da solução
+- Arquitetura do sistema
+- Descrição dos agentes e workflows
+- Integrações utilizadas
+- Decisões técnicas e justificativas
+
+👉 **Link da documentação (PDF):**  
+https://drive.google.com/file/d/18nQFWgLAnWVUqJ5vJxJFoFQZBfWFaF5b/view?usp=sharing
 
 ---
 
-## 🧑‍💻 Autor
+## 📸 Imagens do Projeto
 
-Projeto desenvolvido como trabalho de conclusão de curso / estágio supervisionado.
-Gabriel Silva Carvalho e Vitor (DS3 2025)
+As imagens incluem prints reais do sistema em funcionamento, como:
+- Fluxos no n8n
+- Interface do Chatwoot
+- Estrutura do banco de dados
+- Exemplos de conversas no WhatsApp
+
+👉 **Link das imagens:**  
+https://drive.google.com/drive/folders/15zMaPbFSfB1Z98JsGNxbf1j6FC0x-8f7?usp=sharing
 
 ---
 
-## 📌 Conclusão
+## 🧠 Tecnologias Utilizadas
 
-Este projeto resolve problemas reais enfrentados por clínicas odontológicas, utilizando automação e IA de forma prática, estruturada e aplicável ao mercado.
+- n8n (orquestração de workflows)
+- Chatwoot (atendimento e gestão de conversas)
+- PostgreSQL (persistência, filas e controle de estado)
+- APIs externas (WhatsApp, Google Calendar, Asaas)
+- Webhooks e automações
+
+---
+
+## 📌 Observação
+
+Arquivos de mídia (vídeos, imagens e documentação) foram hospedados externamente para manter o repositório leve e focado na lógica e estrutura do sistema.
